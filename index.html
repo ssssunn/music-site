@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>음원 라이브러리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC;
+    --ink:#211D19;
+    --ink-soft:#5B554D;
+    --line:#D9D2C4;
+    --amber:#B4802B;
+    --teal:#2B4A43;
+    --row-hover:#EFEADC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans KR', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    padding:56px 32px 28px;
+    max-width:960px;
+    margin:0 auto;
+    border-bottom:1px solid var(--line);
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px, 5vw, 42px);
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:15px;
+    max-width:56ch;
+    line-height:1.6;
+  }
+
+  .controls{
+    max-width:960px;
+    margin:0 auto;
+    padding:24px 32px 0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    align-items:center;
+  }
+  .controls input[type="text"]{
+    flex:1 1 220px;
+    padding:10px 14px;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:3px;
+    font-size:14px;
+    font-family:inherit;
+    color:var(--ink);
+  }
+  .controls select{
+    padding:10px 12px;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:3px;
+    font-size:14px;
+    font-family:inherit;
+    color:var(--ink);
+  }
+  .mood-tags{
+    max-width:960px;
+    margin:14px auto 0;
+    padding:0 32px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .mood-tag{
+    padding:6px 13px;
+    border:1px solid var(--line);
+    border-radius:100px;
+    background:transparent;
+    font-size:13px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    font-family:inherit;
+    transition:border-color .15s, color .15s, background .15s;
+  }
+  .mood-tag.active{
+    border-color:var(--teal);
+    color:var(--teal);
+    background:#E4ECE9;
+  }
+
+  .count-row{
+    max-width:960px;
+    margin:26px auto 0;
+    padding:0 32px;
+    font-size:13px;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--line);
+    padding-bottom:10px;
+  }
+
+  ul.track-list{
+    list-style:none;
+    margin:0 auto;
+    padding:0 32px 80px;
+    max-width:960px;
+  }
+  .track{
+    display:grid;
+    grid-template-columns:48px 1fr auto auto;
+    align-items:center;
+    gap:16px;
+    padding:16px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .track:hover{background:var(--row-hover);}
+  .cover{
+    width:48px;
+    height:48px;
+    border-radius:3px;
+    background:var(--teal);
+    background-size:cover;
+    background-position:center;
+    flex-shrink:0;
+  }
+  .meta .title{
+    font-weight:500;
+    font-size:15px;
+    margin:0 0 2px;
+  }
+  .meta .sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .meta .sub .tag{
+    color:var(--amber);
+  }
+  audio{
+    height:32px;
+    width:220px;
+    max-width:38vw;
+  }
+  .dl-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 14px;
+    border:1px solid var(--ink);
+    border-radius:3px;
+    text-decoration:none;
+    color:var(--ink);
+    font-size:13px;
+    white-space:nowrap;
+    transition:background .15s, color .15s;
+  }
+  .dl-btn:hover{
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  .empty-state{
+    max-width:960px;
+    margin:60px auto;
+    padding:0 32px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+
+  @media (max-width:640px){
+    .track{grid-template-columns:40px 1fr; row-gap:10px;}
+    audio{grid-column:1 / -1; width:100%; max-width:none;}
+    .dl-btn{grid-column:1 / -1; justify-self:start;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>음원 라이브러리</h1>
+  <p>카테고리와 분위기로 곡을 찾아 미리 듣고, 필요한 곡은 바로 다운로드할 수 있습니다.</p>
+</header>
+
+<div class="controls">
+  <input type="text" id="searchInput" placeholder="곡 제목 또는 아티스트 검색" />
+  <select id="categorySelect">
+    <option value="all">전체 카테고리</option>
+  </select>
+  <select id="sortSelect">
+    <option value="recent">최신순</option>
+    <option value="title">제목순</option>
+    <option value="artist">아티스트순</option>
+  </select>
+</div>
+
+<div class="mood-tags" id="moodTags"></div>
+
+<div class="count-row" id="countRow"></div>
+
+<ul class="track-list" id="trackList"></ul>
+
+<script>
+/* ============================================================
+   여기 TRACKS 배열만 수정하면 곡이 추가/변경됩니다.
+   - id: 고유 숫자 (겹치지 않게)
+   - title, artist: 곡 정보
+   - category: 카테고리 select에 자동으로 반영됩니다
+   - moods: 분위기 태그 배열 (여러 개 가능, 예: ["잔잔","밝음"])
+   - cover: covers 폴더에 넣은 이미지 파일 경로 (없으면 빈 문자열 "")
+   - audio: audio 폴더에 넣은 mp3 파일 경로
+   음원 파일은 이 index.html과 같은 위치의 audio/ 폴더에,
+   커버 이미지는 covers/ 폴더에 넣어주세요.
+   ============================================================ */
+const TRACKS = [
+  {
+    id: 1,
+    title: "샘플 트랙 1",
+    artist: "아티스트 A",
+    category: "카테고리 A",
+    moods: ["잔잔"],
+    cover: "",
+    audio: "audio/sample1.mp3"
+  },
+  {
+    id: 2,
+    title: "샘플 트랙 2",
+    artist: "아티스트 B",
+    category: "카테고리 B",
+    moods: ["밝음", "웅장"],
+    cover: "",
+    audio: "audio/sample2.mp3"
+  },
+  {
+    id: 3,
+    title: "샘플 트랙 3",
+    artist: "아티스트 A",
+    category: "카테고리 A",
+    moods: ["웅장"],
+    cover: "",
+    audio: "audio/sample3.mp3"
+  }
+];
+
+// ---- 상태 ----
+let state = {
+  search: "",
+  category: "all",
+  moods: new Set(),
+  sort: "recent"
+};
+
+// ---- 초기화: 카테고리 select 채우기 ----
+const categorySelect = document.getElementById("categorySelect");
+const categories = [...new Set(TRACKS.map(t => t.category))];
+categories.forEach(cat => {
+  const opt = document.createElement("option");
+  opt.value = cat;
+  opt.textContent = cat;
+  categorySelect.appendChild(opt);
+});
+
+// ---- 초기화: 무드 태그 버튼 채우기 ----
+const moodTagsEl = document.getElementById("moodTags");
+const allMoods = [...new Set(TRACKS.flatMap(t => t.moods))];
+allMoods.forEach(mood => {
+  const btn = document.createElement("button");
+  btn.className = "mood-tag";
+  btn.textContent = mood;
+  btn.addEventListener("click", () => {
+    if (state.moods.has(mood)) {
+      state.moods.delete(mood);
+      btn.classList.remove("active");
+    } else {
+      state.moods.add(mood);
+      btn.classList.add("active");
+    }
+    render();
+  });
+  moodTagsEl.appendChild(btn);
+});
+
+// ---- 이벤트 연결 ----
+document.getElementById("searchInput").addEventListener("input", e => {
+  state.search = e.target.value.trim().toLowerCase();
+  render();
+});
+categorySelect.addEventListener("change", e => {
+  state.category = e.target.value;
+  render();
+});
+document.getElementById("sortSelect").addEventListener("change", e => {
+  state.sort = e.target.value;
+  render();
+});
+
+// ---- 필터 + 정렬 + 렌더 ----
+function render() {
+  let list = TRACKS.filter(t => {
+    const matchesSearch =
+      !state.search ||
+      t.title.toLowerCase().includes(state.search) ||
+      t.artist.toLowerCase().includes(state.search);
+    const matchesCategory = state.category === "all" || t.category === state.category;
+    const matchesMoods = state.moods.size === 0 || t.moods.some(m => state.moods.has(m));
+    return matchesSearch && matchesCategory && matchesMoods;
+  });
+
+  if (state.sort === "title") {
+    list.sort((a, b) => a.title.localeCompare(b.title, "ko"));
+  } else if (state.sort === "artist") {
+    list.sort((a, b) => a.artist.localeCompare(b.artist, "ko"));
+  } else {
+    list.sort((a, b) => b.id - a.id); // 최신순 = id 큰 순
+  }
+
+  const listEl = document.getElementById("trackList");
+  const countEl = document.getElementById("countRow");
+  countEl.textContent = `${list.length}곡`;
+
+  if (list.length === 0) {
+    listEl.innerHTML = "";
+    listEl.insertAdjacentHTML(
+      "afterend",
+      `<div class="empty-state" id="emptyState">조건에 맞는 곡이 없습니다. 검색어나 필터를 바꿔보세요.</div>`
+    );
+    return;
+  }
+  const existingEmpty = document.getElementById("emptyState");
+  if (existingEmpty) existingEmpty.remove();
+
+  listEl.innerHTML = list.map(t => `
+    <li class="track">
+      <div class="cover" style="${t.cover ? `background-image:url('${t.cover}')` : ""}"></div>
+      <div class="meta">
+        <p class="title">${t.title}</p>
+        <p class="sub">
+          <span>${t.artist}</span>
+          <span class="tag">${t.category}</span>
+          ${t.moods.map(m => `<span class="tag">#${m}</span>`).join("")}
+        </p>
+      </div>
+      <audio controls preload="none" src="${t.audio}"></audio>
+      <a class="dl-btn" href="${t.audio}" download>다운로드</a>
+    </li>
+  `).join("");
+}
+
+render();
+</script>
+</body>
+</html>
