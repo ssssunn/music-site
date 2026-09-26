@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>음원 라이브러리</title>
+<title>ssun library</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
@@ -74,30 +74,6 @@
     font-family:inherit;
     color:var(--ink);
   }
-  .mood-tags{
-    max-width:960px;
-    margin:14px auto 0;
-    padding:0 32px;
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  .mood-tag{
-    padding:6px 13px;
-    border:1px solid var(--line);
-    border-radius:100px;
-    background:transparent;
-    font-size:13px;
-    color:var(--ink-soft);
-    cursor:pointer;
-    font-family:inherit;
-    transition:border-color .15s, color .15s, background .15s;
-  }
-  .mood-tag.active{
-    border-color:var(--teal);
-    color:var(--teal);
-    background:#E4ECE9;
-  }
 
   .count-row{
     max-width:960px;
@@ -112,7 +88,7 @@
   ul.track-list{
     list-style:none;
     margin:0 auto;
-    padding:0 32px 80px;
+    padding:0 32px 40px;
     max-width:960px;
   }
   .track{
@@ -179,117 +155,192 @@
     font-size:14px;
   }
 
+  .docs-section{
+    max-width:960px;
+    margin:0 auto;
+    padding:0 32px 80px;
+  }
+  .docs-heading{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 4px;
+    padding-top:32px;
+  }
+  ul.docs-list{
+    list-style:none;
+    margin:12px 0 0;
+    padding:0;
+  }
+  .doc-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+    font-size:14px;
+  }
+
   @media (max-width:640px){
     .track{grid-template-columns:40px 1fr; row-gap:10px;}
     audio{grid-column:1 / -1; width:100%; max-width:none;}
     .dl-btn{grid-column:1 / -1; justify-self:start;}
+    .doc-item{flex-direction:column; align-items:flex-start; gap:8px;}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>음원 라이브러리</h1>
-  <p>카테고리와 분위기로 곡을 찾아 미리 듣고, 필요한 곡은 바로 다운로드할 수 있습니다.</p>
+  <h1>ssun library</h1>
+  <p>식순과 곡 제목으로 찾아 미리 듣고, 필요한 곡과 자료는 바로 다운로드할 수 있습니다.</p>
 </header>
 
 <div class="controls">
-  <input type="text" id="searchInput" placeholder="곡 제목 또는 아티스트 검색" />
+  <input type="text" id="searchInput" placeholder="곡 제목 또는 식순 검색" />
   <select id="categorySelect">
-    <option value="all">전체 카테고리</option>
+    <option value="all">전체 식순</option>
   </select>
   <select id="sortSelect">
     <option value="recent">최신순</option>
     <option value="title">제목순</option>
-    <option value="artist">아티스트순</option>
+    <option value="category">식순순</option>
   </select>
 </div>
-
-<div class="mood-tags" id="moodTags"></div>
 
 <div class="count-row" id="countRow"></div>
 
 <ul class="track-list" id="trackList"></ul>
 
+<div class="docs-section" id="docsSection">
+  <h2 class="docs-heading">문서 자료</h2>
+  <ul class="docs-list" id="docsList"></ul>
+</div>
+
 <script>
 /* ============================================================
-   여기 TRACKS 배열만 수정하면 곡이 추가/변경됩니다.
-   - id: 고유 숫자 (겹치지 않게)
-   - title, artist: 곡 정보
-   - category: 카테고리 select에 자동으로 반영됩니다
-   - moods: 분위기 태그 배열 (여러 개 가능, 예: ["잔잔","밝음"])
-   - cover: covers 폴더에 넣은 이미지 파일 경로 (없으면 빈 문자열 "")
-   - audio: audio 폴더에 넣은 mp3 파일 경로
-   음원 파일은 이 index.html과 같은 위치의 audio/ 폴더에,
-   커버 이미지는 covers/ 폴더에 넣어주세요.
+   이 페이지는 index.html을 수정할 필요가 없습니다.
+
+   [음원] audio 폴더에 아래 규칙대로 파일명을 지어서 mp3만
+   올리면 자동으로 목록에 나타납니다.
+
+   파일명 규칙:
+     [식순] 제목_타이밍.mp3
+   예) [신랑입장] 봄날의 왈츠_2분30초.mp3
+
+   커버 이미지(선택): covers 폴더에 audio 파일과 같은 이름으로
+   jpg 또는 png를 넣으면 자동으로 매칭됩니다.
+
+   [문서] docs 폴더에 파일을 올리면 이름 그대로 목록에 자동으로
+   나타납니다. (placeholder.txt는 자동으로 목록에서 제외됩니다)
+
+   OWNER / REPO 값은 이 저장소의 GitHub 주소
+   (github.com/OWNER/REPO) 그대로 넣어주세요.
    ============================================================ */
-const TRACKS = [
-  {
-    id: 1,
-    title: "샘플 트랙 1",
-    artist: "아티스트 A",
-    category: "카테고리 A",
-    moods: ["잔잔"],
-    cover: "",
-    audio: "audio/sample1.mp3"
-  },
-  {
-    id: 2,
-    title: "샘플 트랙 2",
-    artist: "아티스트 B",
-    category: "카테고리 B",
-    moods: ["밝음", "웅장"],
-    cover: "",
-    audio: "audio/sample2.mp3"
-  },
-  {
-    id: 3,
-    title: "샘플 트랙 3",
-    artist: "아티스트 A",
-    category: "카테고리 A",
-    moods: ["웅장"],
-    cover: "",
-    audio: "audio/sample3.mp3"
-  }
-];
+const OWNER = "ssssunn";
+const REPO = "music-site";
+
+let TRACKS = [];
 
 // ---- 상태 ----
 let state = {
   search: "",
   category: "all",
-  moods: new Set(),
   sort: "recent"
 };
 
-// ---- 초기화: 카테고리 select 채우기 ----
 const categorySelect = document.getElementById("categorySelect");
-const categories = [...new Set(TRACKS.map(t => t.category))];
-categories.forEach(cat => {
-  const opt = document.createElement("option");
-  opt.value = cat;
-  opt.textContent = cat;
-  categorySelect.appendChild(opt);
-});
+const listEl = document.getElementById("trackList");
+const countEl = document.getElementById("countRow");
+const docsListEl = document.getElementById("docsList");
 
-// ---- 초기화: 무드 태그 버튼 채우기 ----
-const moodTagsEl = document.getElementById("moodTags");
-const allMoods = [...new Set(TRACKS.flatMap(t => t.moods))];
-allMoods.forEach(mood => {
-  const btn = document.createElement("button");
-  btn.className = "mood-tag";
-  btn.textContent = mood;
-  btn.addEventListener("click", () => {
-    if (state.moods.has(mood)) {
-      state.moods.delete(mood);
-      btn.classList.remove("active");
-    } else {
-      state.moods.add(mood);
-      btn.classList.add("active");
-    }
-    render();
+// ---- GitHub 저장소의 폴더 목록을 읽어오는 함수 ----
+async function fetchFolder(path) {
+  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.filter(f => f.type === "file");
+}
+
+// ---- 파일명 파싱: [식순] 제목_타이밍.mp3 ----
+function parseFilename(filename) {
+  const nameOnly = filename.replace(/\.mp3$/i, "");
+  const match = nameOnly.match(/^\[(.+?)\]\s*(.+)$/);
+  if (!match) return null;
+  const category = match[1].trim();
+  const rest = match[2].trim();
+  const lastUnderscore = rest.lastIndexOf("_");
+  let title, timing;
+  if (lastUnderscore === -1) {
+    title = rest;
+    timing = "";
+  } else {
+    title = rest.slice(0, lastUnderscore).trim();
+    timing = rest.slice(lastUnderscore + 1).trim();
+  }
+  return { title, category, timing };
+}
+
+// ---- 초기 로딩: audio, covers, docs 폴더를 읽어서 구성 ----
+async function loadTracks() {
+  listEl.innerHTML = "";
+  countEl.textContent = "곡 목록을 불러오는 중...";
+
+  let audioFiles = [];
+  let coverFiles = [];
+  let docFiles = [];
+  try {
+    [audioFiles, coverFiles, docFiles] = await Promise.all([
+      fetchFolder("audio"),
+      fetchFolder("covers"),
+      fetchFolder("docs")
+    ]);
+  } catch (err) {
+    countEl.textContent = "";
+    listEl.innerHTML = `<div class="empty-state">목록을 불러오지 못했습니다. 잠시 후 새로고침해보세요.</div>`;
+    return;
+  }
+
+  const coverMap = {};
+  coverFiles.forEach(f => {
+    const base = f.name.replace(/\.(jpg|jpeg|png)$/i, "");
+    coverMap[base] = f.download_url;
   });
-  moodTagsEl.appendChild(btn);
-});
+
+  TRACKS = audioFiles
+    .filter(f => /\.mp3$/i.test(f.name))
+    .map((f, idx) => {
+      const parsed = parseFilename(f.name);
+      if (!parsed) return null;
+      const base = f.name.replace(/\.mp3$/i, "");
+      return {
+        id: idx + 1,
+        title: parsed.title,
+        category: parsed.category,
+        timing: parsed.timing,
+        cover: coverMap[base] || "",
+        audio: f.download_url
+      };
+    })
+    .filter(Boolean);
+
+  buildCategoryOptions();
+  render();
+  renderDocs(docFiles);
+}
+
+function buildCategoryOptions() {
+  categorySelect.innerHTML = `<option value="all">전체 식순</option>`;
+  const categories = [...new Set(TRACKS.map(t => t.category))];
+  categories.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    categorySelect.appendChild(opt);
+  });
+}
 
 // ---- 이벤트 연결 ----
 document.getElementById("searchInput").addEventListener("input", e => {
@@ -305,28 +356,25 @@ document.getElementById("sortSelect").addEventListener("change", e => {
   render();
 });
 
-// ---- 필터 + 정렬 + 렌더 ----
+// ---- 필터 + 정렬 + 렌더 (음원 목록) ----
 function render() {
   let list = TRACKS.filter(t => {
     const matchesSearch =
       !state.search ||
       t.title.toLowerCase().includes(state.search) ||
-      t.artist.toLowerCase().includes(state.search);
+      t.category.toLowerCase().includes(state.search);
     const matchesCategory = state.category === "all" || t.category === state.category;
-    const matchesMoods = state.moods.size === 0 || t.moods.some(m => state.moods.has(m));
-    return matchesSearch && matchesCategory && matchesMoods;
+    return matchesSearch && matchesCategory;
   });
 
   if (state.sort === "title") {
     list.sort((a, b) => a.title.localeCompare(b.title, "ko"));
-  } else if (state.sort === "artist") {
-    list.sort((a, b) => a.artist.localeCompare(b.artist, "ko"));
+  } else if (state.sort === "category") {
+    list.sort((a, b) => a.category.localeCompare(b.category, "ko"));
   } else {
     list.sort((a, b) => b.id - a.id); // 최신순 = id 큰 순
   }
 
-  const listEl = document.getElementById("trackList");
-  const countEl = document.getElementById("countRow");
   countEl.textContent = `${list.length}곡`;
 
   if (list.length === 0) {
@@ -346,9 +394,8 @@ function render() {
       <div class="meta">
         <p class="title">${t.title}</p>
         <p class="sub">
-          <span>${t.artist}</span>
           <span class="tag">${t.category}</span>
-          ${t.moods.map(m => `<span class="tag">#${m}</span>`).join("")}
+          ${t.timing ? `<span>${t.timing}</span>` : ""}
         </p>
       </div>
       <audio controls preload="none" src="${t.audio}"></audio>
@@ -357,7 +404,24 @@ function render() {
   `).join("");
 }
 
-render();
+// ---- 문서 자료 렌더 ----
+function renderDocs(docFiles) {
+  const files = docFiles.filter(f => f.name.toLowerCase() !== "placeholder.txt");
+
+  if (files.length === 0) {
+    docsListEl.innerHTML = `<li class="doc-item" style="color:var(--ink-soft);">등록된 문서가 없습니다.</li>`;
+    return;
+  }
+
+  docsListEl.innerHTML = files.map(f => `
+    <li class="doc-item">
+      <span>${f.name}</span>
+      <a class="dl-btn" href="${f.download_url}" download>다운로드</a>
+    </li>
+  `).join("");
+}
+
+loadTracks();
 </script>
 </body>
 </html>
